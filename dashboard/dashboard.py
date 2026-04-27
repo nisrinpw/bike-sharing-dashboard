@@ -39,6 +39,27 @@ season_labels = {
 day_df["weather_label"] = day_df["weathersit"].map(weather_labels)
 day_df["season_label"] = day_df["season"].map(season_labels)
 
+# Sidebar Filter
+st.sidebar.header("Filter Data")
+
+selected_season = st.sidebar.multiselect(
+    "Pilih Musim",
+    options=day_df["season_label"].unique(),
+    default=day_df["season_label"].unique()
+)
+
+selected_weather = st.sidebar.multiselect(
+    "Pilih Kondisi Cuaca",
+    options=day_df["weather_label"].unique(),
+    default=day_df["weather_label"].unique()
+)
+
+# Filtering Data
+main_df = day_df[
+    (day_df["season_label"].isin(selected_season)) &
+    (day_df["weather_label"].isin(selected_weather))
+]
+
 # Header
 st.title("🚲 Bike Sharing Dashboard")
 st.markdown("Analisis penyewaan sepeda berdasarkan kondisi cuaca, musim, dan tingkat permintaan.")
@@ -47,15 +68,15 @@ st.markdown("Analisis penyewaan sepeda berdasarkan kondisi cuaca, musim, dan tin
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    total_rentals = int(day_df["cnt"].sum())
+    total_rentals = int(main_df["cnt"].sum())
     st.metric("Total Rentals", value=f"{total_rentals:,}")
 
 with col2:
-    avg_rentals = int(day_df["cnt"].mean())
+    avg_rentals = int(main_df["cnt"].mean())
     st.metric("Average Daily Rentals", value=f"{avg_rentals:,}")
 
 with col3:
-    max_rentals = int(day_df["cnt"].max())
+    max_rentals = int(main_df["cnt"].max())
     st.metric("Maximum Daily Rentals", value=f"{max_rentals:,}")
 
 st.divider()
@@ -65,7 +86,7 @@ st.subheader("Average Bike Rentals by Weather Condition")
 
 fig, ax = plt.subplots(figsize=(8,5))
 sns.barplot(
-    data=day_df,
+    data=main_df,
     x="weather_label",
     y="cnt",
     ax=ax
@@ -82,7 +103,7 @@ st.subheader("Average Bike Rentals by Season")
 
 fig, ax = plt.subplots(figsize=(8,5))
 sns.barplot(
-    data=day_df,
+    data=main_df,
     x="season_label",
     y="cnt",
     ax=ax
@@ -97,15 +118,17 @@ st.pyplot(fig)
 # Clustering (Demand Category)
 st.subheader("Demand Category Distribution")
 
-day_df["demand_category"] = pd.cut(
-    day_df["cnt"],
+main_df = main_df.copy()
+
+main_df["demand_category"] = pd.cut(
+    main_df["cnt"],
     bins=3,
     labels=["Low Demand", "Medium Demand", "High Demand"]
 )
 
 fig, ax = plt.subplots(figsize=(8,5))
 sns.countplot(
-    data=day_df,
+    data=main_df,
     x="demand_category",
     ax=ax
 )
