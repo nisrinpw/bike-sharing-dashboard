@@ -4,7 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Page Config
+# PAGE CONFIG
+
 st.set_page_config(
     page_title="Bike Sharing Dashboard",
     page_icon="🚲",
@@ -13,15 +14,18 @@ st.set_page_config(
 
 sns.set(style="darkgrid")
 
-# Load Data
+# LOAD DATA
+
 @st.cache_data
 def load_data():
     df = pd.read_csv("dashboard/main_data.csv")
+    df["dteday"] = pd.to_datetime(df["dteday"])
     return df
 
 day_df = load_data()
 
-# Mapping Label
+# LABEL MAPPING
+
 weather_labels = {
     1: "Clear Weather",
     2: "Misty",
@@ -39,86 +43,46 @@ season_labels = {
 day_df["weather_label"] = day_df["weathersit"].map(weather_labels)
 day_df["season_label"] = day_df["season"].map(season_labels)
 
-# Sidebar Filter
-st.sidebar.header("Filter Data")
+# SIDEBAR
 
-selected_season = st.sidebar.multiselect(
-    "Pilih Musim",
-    options=day_df["season_label"].unique(),
-    default=day_df["season_label"].unique()
-)
+with st.sidebar:
+    st.title("🚲 Bike Sharing")
+    st.markdown("Interactive dashboard for bike rental analysis")
 
-selected_weather = st.sidebar.multiselect(
-    "Pilih Kondisi Cuaca",
-    options=day_df["weather_label"].unique(),
-    default=day_df["weather_label"].unique()
-)
+    # Date Filter
+    min_date = day_df["dteday"].min()
+    max_date = day_df["dteday"].max()
 
-# Filtering Data
+    start_date, end_date = st.date_input(
+        label="Rentang Waktu",
+        min_value=min_date,
+        max_value=max_date,
+        value=[min_date, max_date]
+    )
+
+    # Season Filter
+    selected_season = st.multiselect(
+        "Pilih Musim",
+        options=day_df["season_label"].unique(),
+        default=day_df["season_label"].unique()
+    )
+
+    # Weather Filter
+    selected_weather = st.multiselect(
+        "Pilih Kondisi Cuaca",
+        options=day_df["weather_label"].unique(),
+        default=day_df["weather_label"].unique()
+    )
+
+# FILTER DATA
+
 main_df = day_df[
+    (day_df["dteday"] >= pd.to_datetime(start_date)) &
+    (day_df["dteday"] <= pd.to_datetime(end_date)) &
     (day_df["season_label"].isin(selected_season)) &
     (day_df["weather_label"].isin(selected_weather))
-]
+].copy()
 
-# Header
-st.title("🚲 Bike Sharing Dashboard")
-st.markdown("Analisis penyewaan sepeda berdasarkan kondisi cuaca, musim, dan tingkat permintaan.")
-
-# Metrics
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    total_rentals = int(main_df["cnt"].sum())
-    st.metric("Total Rentals", value=f"{total_rentals:,}")
-
-with col2:
-    avg_rentals = int(main_df["cnt"].mean())
-    st.metric("Average Daily Rentals", value=f"{avg_rentals:,}")
-
-with col3:
-    max_rentals = int(main_df["cnt"].max())
-    st.metric("Maximum Daily Rentals", value=f"{max_rentals:,}")
-
-st.divider()
-
-# Visualization 1
-st.subheader("Average Bike Rentals by Weather Condition")
-
-fig, ax = plt.subplots(figsize=(8,5))
-sns.barplot(
-    data=main_df,
-    x="weather_label",
-    y="cnt",
-    ax=ax
-)
-
-ax.set_xlabel("Weather Condition")
-ax.set_ylabel("Average Total Rentals")
-ax.set_title("Bike Rentals by Weather")
-
-st.pyplot(fig)
-
-# Visualization 2
-st.subheader("Average Bike Rentals by Season")
-
-fig, ax = plt.subplots(figsize=(8,5))
-sns.barplot(
-    data=main_df,
-    x="season_label",
-    y="cnt",
-    ax=ax
-)
-
-ax.set_xlabel("Season")
-ax.set_ylabel("Average Total Rentals")
-ax.set_title("Bike Rentals by Season")
-
-st.pyplot(fig)
-
-# Clustering (Demand Category)
-st.subheader("Demand Category Distribution")
-
-main_df = main_df.copy()
 
 main_df["demand_category"] = pd.cut(
     main_df["cnt"],
@@ -126,10 +90,110 @@ main_df["demand_category"] = pd.cut(
     labels=["Low Demand", "Medium Demand", "High Demand"]
 )
 
-fig, ax = plt.subplots(figsize=(8,5))
+# HEADER
+
+st.title("🚲 Bike Sharing Dashboard")
+st.caption(
+    "Analysis of bike rentals based on weather conditions, seasons, and demand levels."
+)
+
+# METRICS
+
+st.subheader("Summary Metrics")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(
+        "Total Rentals",
+        f"{int(main_df['cnt'].sum()):,}"
+    )
+
+with col2:
+    st.metric(
+        "Average Daily Rentals",
+        f"{int(main_df['cnt'].mean()):,}"
+    )
+
+with col3:
+    st.metric(
+        "Maximum Daily Rentals",
+        f"{int(main_df['cnt'].max()):,}"
+    )
+
+st.divider()
+
+# DAILY RENTAL TREND
+
+st.subheader("Daily Rental Trend")
+
+fig, ax = plt.subplots(figsize=(12, 5))
+
+sns.lineplot(
+    data=main_df,
+    x="dteday",
+    y="cnt",
+    marker="o",
+    ax=ax
+)
+
+ax.set_title("Daily Bike Rental Trend")
+ax.set_xlabel("Date")
+ax.set_ylabel("Total Rentals")
+
+st.pyplot(fig)
+
+# WEATHER + SEASON
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Bike Rentals by Weather")
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    sns.barplot(
+        data=main_df,
+        x="weather_label",
+        y="cnt",
+        palette="Blues",
+        ax=ax
+    )
+
+    ax.set_xlabel("Weather Condition")
+    ax.set_ylabel("Average Rentals")
+
+    st.pyplot(fig)
+
+with col2:
+    st.subheader("Bike Rentals by Season")
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    sns.barplot(
+        data=main_df,
+        x="season_label",
+        y="cnt",
+        palette="Greens",
+        ax=ax
+    )
+
+    ax.set_xlabel("Season")
+    ax.set_ylabel("Average Rentals")
+
+    st.pyplot(fig)
+
+
+# DEMAND CATEGORY
+
+st.subheader("Demand Category Distribution")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
 sns.countplot(
     data=main_df,
     x="demand_category",
+    palette="Oranges",
     ax=ax
 )
 
@@ -139,16 +203,19 @@ ax.set_title("Bike Rental Demand Category")
 
 st.pyplot(fig)
 
-st.divider()
+# INSIGHT
 
-# Insight
 st.subheader("Key Insights")
 
-st.markdown("""
-- Cuaca cerah memiliki rata-rata penyewaan sepeda tertinggi.
-- Musim gugur menunjukkan jumlah penyewaan tertinggi dibanding musim lainnya.
-- Sebagian besar hari berada pada kategori *Medium Demand*.
-- Hari kerja memiliki jumlah penyewaan sedikit lebih tinggi dibanding hari libur.
+st.info("""
+• Clear weather results in the highest bike rentals
+
+• Fall season shows the highest average rentals
+
+• Most days fall into the Medium Demand category
+
+• Working days tend to have slightly higher rentals
 """)
 
-st.caption("Copyright © Dicoding Submission - Bike Sharing Analysis")
+
+st.caption("Created using Python, Streamlit, and Bike Sharing Dataset")
