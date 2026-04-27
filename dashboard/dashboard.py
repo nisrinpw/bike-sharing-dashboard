@@ -168,7 +168,6 @@ with col1:
 
     ax.set_xlabel("Weather")
     ax.set_ylabel("Avg Rentals")
-    ax.tick_params(axis='x', rotation=15)
 
     st.pyplot(fig)
 
@@ -189,7 +188,6 @@ with col2:
 
     ax.set_xlabel("Season")
     ax.set_ylabel("Avg Rentals")
-    ax.tick_params(axis='x', rotation=15)
 
     st.pyplot(fig)
 
@@ -217,7 +215,6 @@ with col3:
 
     ax.set_xlabel("Day Type")
     ax.set_ylabel("Avg Rentals")
-    ax.tick_params(axis='x', rotation=15)
 
     st.pyplot(fig)
 
