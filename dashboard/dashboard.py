@@ -69,12 +69,27 @@ st.subheader("Filter by Date")
 min_date = day_df["dteday"].min().date()
 max_date = day_df["dteday"].max().date()
 
-start_date, end_date = st.date_input(
-    "Pilih Rentang Waktu",
-    value=(min_date, max_date),
-    min_value=min_date,
-    max_value=max_date
-)
+col1, col2 = st.columns(2)
+
+with col1:
+    start_date = st.date_input(
+        "Start Date",
+        value=min_date,
+        min_value=min_date,
+        max_value=max_date
+    )
+
+with col2:
+    end_date = st.date_input(
+        "End Date",
+        value=max_date,
+        min_value=min_date,
+        max_value=max_date
+    )
+
+if start_date > end_date:
+    st.error("Start Date tidak boleh lebih besar dari End Date")
+    st.stop()
 
 # FILTER DATA
 main_df = day_df[
