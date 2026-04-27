@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # PAGE CONFIG
-
 st.set_page_config(
     page_title="Bike Sharing Dashboard",
     page_icon="🚲",
@@ -15,7 +14,6 @@ st.set_page_config(
 sns.set(style="darkgrid")
 
 # LOAD DATA
-
 @st.cache_data
 def load_data():
     df = pd.read_csv("dashboard/main_data.csv")
@@ -25,7 +23,6 @@ def load_data():
 day_df = load_data()
 
 # LABEL MAPPING
-
 weather_labels = {
     1: "Clear Weather",
     2: "Misty",
@@ -44,38 +41,42 @@ day_df["weather_label"] = day_df["weathersit"].map(weather_labels)
 day_df["season_label"] = day_df["season"].map(season_labels)
 
 # SIDEBAR
-
 with st.sidebar:
     st.title("🚲 Bike Sharing")
     st.markdown("Interactive dashboard for bike rental analysis")
 
-    # Date Filter
-    min_date = day_df["dteday"].min()
-    max_date = day_df["dteday"].max()
-
-    start_date, end_date = st.date_input(
-        label="Rentang Waktu",
-        min_value=min_date,
-        max_value=max_date,
-        value=[min_date, max_date]
-    )
-
-    # Season Filter
     selected_season = st.multiselect(
         "Pilih Musim",
         options=day_df["season_label"].unique(),
         default=day_df["season_label"].unique()
     )
 
-    # Weather Filter
     selected_weather = st.multiselect(
         "Pilih Kondisi Cuaca",
         options=day_df["weather_label"].unique(),
         default=day_df["weather_label"].unique()
     )
 
-# FILTER DATA
+# HEADER
+st.title("🚲 Bike Sharing Dashboard")
+st.caption(
+    "Analysis of bike rentals based on weather conditions, seasons, and demand levels."
+)
 
+# FILTER
+st.subheader("Filter by Date")
+
+min_date = day_df["dteday"].min().date()
+max_date = day_df["dteday"].max().date()
+
+start_date, end_date = st.date_input(
+    "Pilih Rentang Waktu",
+    value=(min_date, max_date),
+    min_value=min_date,
+    max_value=max_date
+)
+
+# FILTER DATA
 main_df = day_df[
     (day_df["dteday"] >= pd.to_datetime(start_date)) &
     (day_df["dteday"] <= pd.to_datetime(end_date)) &
@@ -90,15 +91,7 @@ main_df["demand_category"] = pd.cut(
     labels=["Low Demand", "Medium Demand", "High Demand"]
 )
 
-# HEADER
-
-st.title("🚲 Bike Sharing Dashboard")
-st.caption(
-    "Analysis of bike rentals based on weather conditions, seasons, and demand levels."
-)
-
 # METRICS
-
 st.subheader("Summary Metrics")
 
 col1, col2, col3 = st.columns(3)
@@ -124,7 +117,6 @@ with col3:
 st.divider()
 
 # DAILY RENTAL TREND
-
 st.subheader("Daily Rental Trend")
 
 fig, ax = plt.subplots(figsize=(12, 5))
@@ -133,7 +125,6 @@ sns.lineplot(
     data=main_df,
     x="dteday",
     y="cnt",
-    marker="o",
     ax=ax
 )
 
@@ -144,7 +135,6 @@ ax.set_ylabel("Total Rentals")
 st.pyplot(fig)
 
 # WEATHER + SEASON
-
 col1, col2 = st.columns(2)
 
 with col1:
@@ -185,7 +175,6 @@ with col2:
 
 
 # DEMAND CATEGORY
-
 st.subheader("Demand Category Distribution")
 
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -204,7 +193,6 @@ ax.set_title("Bike Rental Demand Category")
 st.pyplot(fig)
 
 # INSIGHT
-
 st.subheader("Key Insights")
 
 st.info("""
