@@ -149,13 +149,14 @@ ax.set_ylabel("Total Rentals")
 
 st.pyplot(fig)
 
-# WEATHER + SEASON
-col1, col2 = st.columns(2)
+# WEATHER + SEASON + WORKING DAY
+col1, col2, col3 = st.columns(3)
 
+# WEATHER
 with col1:
     st.subheader("Bike Rentals by Weather")
 
-    fig, ax = plt.subplots(figsize=(7, 5))
+    fig, ax = plt.subplots(figsize=(6, 4))
 
     sns.barplot(
         data=main_df,
@@ -165,15 +166,18 @@ with col1:
         ax=ax
     )
 
-    ax.set_xlabel("Weather Condition")
-    ax.set_ylabel("Average Rentals")
+    ax.set_xlabel("Weather")
+    ax.set_ylabel("Avg Rentals")
+    ax.tick_params(axis='x', rotation=15)
 
     st.pyplot(fig)
 
+
+# SEASON
 with col2:
     st.subheader("Bike Rentals by Season")
 
-    fig, ax = plt.subplots(figsize=(7, 5))
+    fig, ax = plt.subplots(figsize=(6, 4))
 
     sns.barplot(
         data=main_df,
@@ -184,54 +188,38 @@ with col2:
     )
 
     ax.set_xlabel("Season")
-    ax.set_ylabel("Average Rentals")
+    ax.set_ylabel("Avg Rentals")
+    ax.tick_params(axis='x', rotation=15)
 
     st.pyplot(fig)
 
 
-# DEMAND CATEGORY
-st.subheader("Demand Category Distribution")
+# WORKING DAY
+with col3:
+    workingday_labels = {
+        0: "Holiday",
+        1: "Working Day"
+    }
 
-fig, ax = plt.subplots(figsize=(8, 5))
+    main_df["workingday_label"] = main_df["workingday"].map(workingday_labels)
 
-sns.countplot(
-    data=main_df,
-    x="demand_category",
-    palette="Oranges",
-    ax=ax
-)
+    st.subheader("Bike Rentals by Day Type")
 
-ax.set_xlabel("Demand Category")
-ax.set_ylabel("Total Days")
-ax.set_title("Bike Rental Demand Category")
+    fig, ax = plt.subplots(figsize=(6, 4))
 
-st.pyplot(fig)
+    sns.barplot(
+        data=main_df,
+        x="workingday_label",
+        y="cnt",
+        palette="Purples",
+        ax=ax
+    )
 
-# WORKING DAY VS HOLIDAY
-workingday_labels = {
-    0: "Holiday / Weekend",
-    1: "Working Day"
-}
+    ax.set_xlabel("Day Type")
+    ax.set_ylabel("Avg Rentals")
+    ax.tick_params(axis='x', rotation=15)
 
-main_df["workingday_label"] = main_df["workingday"].map(workingday_labels)
-
-st.subheader("Bike Rentals by Working Day")
-
-fig, ax = plt.subplots(figsize=(8, 5))
-
-sns.barplot(
-    data=main_df,
-    x="workingday_label",
-    y="cnt",
-    palette="Purples",
-    ax=ax
-)
-
-ax.set_xlabel("Day Type")
-ax.set_ylabel("Average Rentals")
-ax.set_title("Average Bike Rentals by Day Type")
-
-st.pyplot(fig)
+    st.pyplot(fig)
 
 # MONTHLY RENTAL TREND
 month_labels = {
@@ -257,6 +245,24 @@ sns.barplot(
 ax.set_xlabel("Month")
 ax.set_ylabel("Average Rentals")
 ax.set_title("Average Bike Rentals by Month")
+
+st.pyplot(fig)
+
+# DEMAND CATEGORY
+st.subheader("Demand Category Distribution")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+sns.countplot(
+    data=main_df,
+    x="demand_category",
+    palette="Oranges",
+    ax=ax
+)
+
+ax.set_xlabel("Demand Category")
+ax.set_ylabel("Total Days")
+ax.set_title("Bike Rental Demand Category")
 
 st.pyplot(fig)
 
