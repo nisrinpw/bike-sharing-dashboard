@@ -207,6 +207,87 @@ ax.set_title("Bike Rental Demand Category")
 
 st.pyplot(fig)
 
+# WORKING DAY VS HOLIDAY
+workingday_labels = {
+    0: "Holiday / Weekend",
+    1: "Working Day"
+}
+
+main_df["workingday_label"] = main_df["workingday"].map(workingday_labels)
+
+st.subheader("Bike Rentals by Working Day")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+sns.barplot(
+    data=main_df,
+    x="workingday_label",
+    y="cnt",
+    palette="Purples",
+    ax=ax
+)
+
+ax.set_xlabel("Day Type")
+ax.set_ylabel("Average Rentals")
+ax.set_title("Average Bike Rentals by Day Type")
+
+st.pyplot(fig)
+
+# MONTHLY RENTAL TREND
+month_labels = {
+    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr",
+    5: "May", 6: "Jun", 7: "Jul", 8: "Aug",
+    9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"
+}
+
+main_df["month_label"] = main_df["mnth"].map(month_labels)
+
+st.subheader("Monthly Rental Trend")
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+sns.barplot(
+    data=main_df,
+    x="month_label",
+    y="cnt",
+    palette="crest",
+    ax=ax
+)
+
+ax.set_xlabel("Month")
+ax.set_ylabel("Average Rentals")
+ax.set_title("Average Bike Rentals by Month")
+
+st.pyplot(fig)
+
+# CORRELATION HEATMAP
+st.subheader("Correlation Heatmap")
+
+corr_columns = [
+    "temp",
+    "atemp",
+    "hum",
+    "windspeed",
+    "cnt"
+]
+
+corr_matrix = main_df[corr_columns].corr()
+
+fig, ax = plt.subplots(figsize=(8, 6))
+
+sns.heatmap(
+    corr_matrix,
+    annot=True,
+    cmap="Blues",
+    fmt=".2f",
+    linewidths=0.5,
+    ax=ax
+)
+
+ax.set_title("Correlation Between Variables")
+
+st.pyplot(fig)
+
 # INSIGHT
 st.subheader("Key Insights")
 
